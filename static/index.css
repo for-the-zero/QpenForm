@@ -1,0 +1,21 @@
+body{
+    font-family: 'Google Sans','Noto Sans SC';
+    color: #201b12;
+}
+.main{
+    margin: 15px;
+}
+.main code{
+    padding: 7px;
+    border-radius: var(--mdui-shape-corner-medium);;
+}
+mdui-divider{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.main h1,.main h2,.main h3,.main h4,.main h5,.main h6,.main p{
+    margin: 17px 0;
+}
+.codeblock{
+    display: block;
+}
