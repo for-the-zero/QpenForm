@@ -37,7 +37,7 @@
     "type": "控件类型",
     "id": "控件id",
     "config": "控件配置",
-    "req": true // 是否必填
+    "req": true /*是否必填*/
 }
 ```
 
@@ -108,3 +108,9 @@ config: `{"max": 2, "accept": ["media", "all"], "withtext": true}`
 type: `table`
 
 config: `{“column”: [“列名”,”列名”], “row”: [“行名”,”行名”]}`
+
+---
+
+## 后端
+
+以后再写，忘了踢我
