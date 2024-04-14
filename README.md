@@ -51,21 +51,18 @@
 
 type: `text`
 
-config: `{'holder': '输入框提示文字', "type":[], "range": []}`
+config: `{"holder": "输入框提示文字", "type":"text", "range": []}`
 
 > type: 输入框类型
 >
-> 包括 text password int float mail url date time
+> 包括 text number email url date time
 >
-> range: 输入框范围（可选）
->
-> int为两个项，float为三个项，第三个为分度值，url为一个项，限定域名
 
 - 多行输入框
 
 type: `textarea`
 
-config: `{'holder': '输入框提示文字'}`
+config: `{"holder": "输入框提示文字"}`
 
 - 标签输入框
 
@@ -87,9 +84,7 @@ config: `{"opt": ["选项","选项"]}`
 
 type: `checkboxs`
 
-config: `{"opt": ["选项","选项"], max: 2}`
-
-> max: 最多可选数量
+config: `{"label": "标签"}`
 
 - 下拉列表
 

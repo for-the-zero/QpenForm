@@ -19,3 +19,7 @@ mdui-divider{
 .codeblock{
     display: block;
 }
+.space{
+    margin-top: 4px;
+    margin-bottom: 4px;
+}

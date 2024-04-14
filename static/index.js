@@ -35,18 +35,8 @@ markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
     const content = token.content;
     const langName = token.info ? ` language-${token.info.trim()}` : '';
     return `<pre class="codeblock"><code class="codeblock${langName}">${content}</code></pre>\n`;
-  };
-customs();
-
-
-
-
-function load_form(data){
-    $('.main').html(markdown.render(data));
-    $('.main').append('<mdui-divider></mdui-divider>');
-    $('.main').append('<mdui-button class="submit-btn" full-width>提交</mdui-button>');
-
 };
+customs();
 function customs(){
     // 1. 独占一行，只有一个，所有文本最开头，交给函数meta_load(内容)处理，以!&-->开头，阻止默认行为
     // 2. 独占一行，有多个，交给函数add_ctrls(内容)处理，以&-->开头，阻止默认行为
@@ -62,11 +52,76 @@ function customs(){
         };
     };
 };
+function load_form(data){
+    $('.main').html(markdown.render(data));
+    document.querySelectorAll('.main').forEach(function(main) {
+        var childNodes = main.childNodes;
+        for (var i = childNodes.length - 1; i >= 0; i--) {
+            var node = childNodes[i];
+            if (node.nodeType === 3) {
+                node.parentNode.removeChild(node);
+          };
+        };
+    });
+    $('.main p').filter(function(){
+        return $(this).text().trim() === '';
+    }).remove();
+    $('.main').append('<mdui-divider></mdui-divider>');
+    $('.main').append('<mdui-button class="submit-btn" full-width>提交</mdui-button>');
+
+};
+
+var send_to = 'localhost';
 function meta_load(meta){
+    //console.log(meta);
     meta = meta.slice(5);
+    meta = JSON.parse(meta);
+    document.title = meta.title;
+    if (meta.theme){
+        mdui.setColorScheme(meta.theme);
+    };
+    send_to = meta.to;
     return '';
 };
+var ctrls = [];
 function add_ctrls(jsondata){
-    jsondata = jsondata.slice(4);
-    return '';
+    //console.log(jsondata);
+    let ctrl = JSON.parse(jsondata.slice(4));
+    ctrls.push(ctrl);
+    let processing = '';
+    switch (ctrl.type) {
+        case 'text':
+            processing = `<mdui-text-field id="${ctrl.id}" class="space" variant="outlined" label="${ctrl.config.holder}" type="${ctrl.config.type}"></mdui-text-field>`;
+            return processing;
+        case 'textarea':
+            processing = `<mdui-text-field id="${ctrl.id}" class="space" rows="4" label="${ctrl.config.holder}" variant="outlined"></mdui-text-field>`;
+            return processing;
+        case 'radios':
+            processing = `<mdui-radio-group id="${ctrl.id}" class="space" value="${ctrl.config.opt[0]}">`
+            for (let i = 0; i < ctrl.config.opt.length; i++) {
+                processing += `<mdui-radio value="${ctrl.config.opt[i]}">${ctrl.config.opt[i]}</mdui-radio>`
+                processing += '<br>'
+            };
+            processing += '</mdui-radio-group>';
+            processing += '<br>'
+            return processing;
+        case 'checkboxs':
+            processing = `<mdui-checkbox id="${ctrl.id}" class="space">${ctrl.config.label}</mdui-checkbox>`;
+            processing += '<br>';
+            return processing;
+        case 'select':
+            processing = `<mdui-select id="${ctrl.id}" variant="outlined" value="${ctrl.config.opt[0]}" end-icon="keyboard_arrow_down">`;
+            for (let i = 0; i < ctrl.config.opt.length; i++) {
+                processing += `<mdui-menu-item value="${ctrl.config.opt[i]}">${ctrl.config.opt[i]}</mdui-menu-item>`;
+            }
+            processing += '</mdui-select>'
+            return processing;
+        case  'taginput':
+            return '';
+        case 'files':
+            return '';
+        case 'table':
+            return '';
+    }
 };
+
