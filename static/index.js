@@ -100,24 +100,41 @@ function add_ctrls(jsondata){
             processing = `<mdui-radio-group id="${ctrl.id}" class="space" value="${ctrl.config.opt[0]}">`
             for (let i = 0; i < ctrl.config.opt.length; i++) {
                 processing += `<mdui-radio value="${ctrl.config.opt[i]}">${ctrl.config.opt[i]}</mdui-radio>`
-                processing += '<br>'
+                if (ctrl.config.br){processing += '<br>'};
             };
             processing += '</mdui-radio-group>';
             processing += '<br>'
             return processing;
         case 'checkboxs':
             processing = `<mdui-checkbox id="${ctrl.id}" class="space">${ctrl.config.label}</mdui-checkbox>`;
-            processing += '<br>';
+            if (ctrl.config.br){processing += '<br>';};
             return processing;
         case 'select':
-            processing = `<mdui-select id="${ctrl.id}" variant="outlined" value="${ctrl.config.opt[0]}" end-icon="keyboard_arrow_down">`;
+            processing = `<mdui-select id="${ctrl.id}" variant="outlined" value="${ctrl.config.opt[0]}" icon="keyboard_arrow_down">`;
             for (let i = 0; i < ctrl.config.opt.length; i++) {
                 processing += `<mdui-menu-item value="${ctrl.config.opt[i]}">${ctrl.config.opt[i]}</mdui-menu-item>`;
             }
             processing += '</mdui-select>'
             return processing;
-        case  'taginput':
-            return '';
+        case 'tagsinput':
+            if (ctrl.config.pinnedtags){
+                processing = `<mdui-select id="${ctrl.id}" variant="outlined" multiple placeholder="选择标签">`;
+                for (let i = 0; i < ctrl.config.tags.length; i++) {
+                    processing += `<mdui-menu-item value="${ctrl.config.tags[i]}">${ctrl.config.tags[i]}</mdui-menu-item>`;
+                };
+                processing += `</mdui-select>`;
+            } else {
+                processing = `<mdui-card id="${ctrls.id}" variant="outlined" class="complex-con">`;
+                    processing += `<div class="complex-con-list">`
+                        //TODO:
+                    processing += `</div>`;
+                    processing += `<mdui-divider></mdui-divider>`;
+                    processing += `<div class="complex-con-controls">`;
+                        //TODO:
+                    processing += `</div>`;
+                processing += `</mdui-card>`;
+            };
+            return processing;
         case 'files':
             return '';
         case 'table':

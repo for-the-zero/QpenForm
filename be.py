@@ -1,9 +1,13 @@
-from flask import Flask, render_template
+from flask import Flask, send_from_directory
 app = Flask(__name__)
 
 @app.route('/')
-def indexhtml():
-    return render_template('index.html')
+def index():
+    return send_from_directory('static','index.html')
+
+@app.route('/<path:path>')
+def staticfiles(path):
+    return send_from_directory('static',path)
 
 @app.route('/post',methods=['POST'])
 def submit():

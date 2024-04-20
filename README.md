@@ -68,23 +68,25 @@ config: `{"holder": "输入框提示文字"}`
 
 type: `tagsinput`
 
-config: `{"pinnedtags": true, tags: ["标签","标签"], "holder": "输入框提示文字",max: 2}`
+config: `{"pinnedtags": true, "tags": ["标签","标签"]}`
 
-> max: 最多可选数量
->
-> pinnedtags: 是否固定标签
+> pinnedtags: 是否固定标签，true时tags才有效
 
 - 单选框
 
 type: `radios`
 
-config: `{"opt": ["选项","选项"]}`
+config: `{"opt": ["选项","选项"], "br': true}`
+
+> br: 是否换行
 
 - 多选框
 
 type: `checkboxs`
 
-config: `{"label": "标签"}`
+config: `{"label": "标签", "br': true}`
+
+> br: 是否换行
 
 - 下拉列表
 

@@ -23,3 +23,23 @@ mdui-divider{
     margin-top: 4px;
     margin-bottom: 4px;
 }
+.complex-con{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+.complex-con-list{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 50px;
+    overflow-x: auto;
+}
+.complex-con-controls{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 50px;
+}
