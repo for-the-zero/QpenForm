@@ -24,7 +24,8 @@
 {
   "title": "网页标题",
   "theme": "颜色主题（可选），要十六进制颜色码",
-  "to": "后端地址，将会post过去"
+  "to": "后端地址，将会post过去",
+  "upload": "上传文件url"
 }
 ```
 
@@ -98,12 +99,7 @@ config: `{"opt": ["选项","选项"]}`
 
 type: `files`
 
-config: `{"max": 2, "accept": ["media", "all"], "withtext": true}`
-
-> max: 最多可选数量
->
-> accept: 可选文件类型，media只允许媒体文件，all允许所有文件
-
+config: `{"withtext": true}`
 
 - 表格选项
 

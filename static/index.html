@@ -11,6 +11,7 @@
     <script src="https://jsd.cdn.zzko.cn/npm/mdui/mdui.global.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
     <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>
     <mdui-dialog class="invalid-dialog">
@@ -18,6 +19,10 @@
         <span slot="description">可能是因为：没加地址、格式错误、无法访问</span>
         <mdui-text-field variant="outlined" label="更改地址"></mdui-text-field>
         <mdui-button slot="action" variant="tonal">跳转</mdui-button>
+    </mdui-dialog>
+    <mdui-dialog class="upload-dialog">
+        <span slot="headline">上传中</span>
+        <mdui-circular-progress></mdui-circular-progress><p>请稍后</p>
     </mdui-dialog>
 
     <div class="mdui-prose main"></div>
