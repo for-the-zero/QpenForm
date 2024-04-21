@@ -63,6 +63,7 @@ function load_form(data){
           };
         };
     });
+    add_listeners();
     $('.main p').filter(function(){
         return $(this).text().trim() === '';
     }).remove();
@@ -84,6 +85,7 @@ function meta_load(meta){
     return '';
 };
 var ctrls = [];
+var record_files_or_tags = {};
 function add_ctrls(jsondata){
     //console.log(jsondata);
     let ctrl = JSON.parse(jsondata.slice(4));
@@ -124,15 +126,17 @@ function add_ctrls(jsondata){
                 };
                 processing += `</mdui-select>`;
             } else {
-                processing = `<mdui-card id="${ctrls.id}" variant="outlined" class="complex-con">`;
+                processing = `<mdui-card id="${ctrl.id}" variant="outlined" class="complex-con">`;
                     processing += `<div class="complex-con-list">`
-                        //TODO:
                     processing += `</div>`;
                     processing += `<mdui-divider></mdui-divider>`;
-                    processing += `<div class="complex-con-controls">`;
-                        //TODO:
-                    processing += `</div>`;
+                    processing += `<mdui-tooltip content="注：点击标签可删除标签"><div class="complex-con-controls">`;
+                        processing += `<mdui-text-field label="标签"></mdui-text-field>`;
+                        processing += `<mdui-button variant="elevated">添加</mdui-button>`;
+                    processing += `</div></mdui-tooltip>`;
                 processing += `</mdui-card>`;
+                //
+                record_files_or_tags[ctrl.id] = [];
             };
             return processing;
         case 'files':
@@ -142,3 +146,37 @@ function add_ctrls(jsondata){
     }
 };
 
+
+function add_listeners(){
+    for(let i = 0; i < ctrls.length; i++){
+        if(ctrls[i].type == 'tagsinput'){
+            tagsinput_listener(ctrls[i]);
+        } else if (ctrls[i].type == 'files'){
+            //TODO:
+        };
+    };
+};
+
+function chipsonclick(thisele,ctrl){
+    let tag_value = $(thisele).text();
+    record_files_or_tags[ctrl.id].splice(record_files_or_tags[ctrl.id].indexOf(tag_value),1);
+    tagsreflash(ctrl);
+}
+function tagsreflash(ctrl){
+    let tagshtml = '';
+    for(let i = 0;i < record_files_or_tags[ctrl.id].length;i++){
+            tagshtml += `<mdui-chip>${record_files_or_tags[ctrl.id][i]}</mdui-chip>`;
+    };
+    $(`#${ctrl.id} .complex-con-list`).html(tagshtml);
+    $(`#${ctrl.id} .complex-con-list mdui-chip`).on('click',function(){chipsonclick(this,ctrl);});
+};
+function tagsinput_listener(ctrl){
+    $(`#${ctrl.id} .complex-con-controls mdui-button`).on('click',function(){
+        let tag_value = $(`#${ctrl.id} .complex-con-controls mdui-text-field`).val();
+        $(`#${ctrl.id} .complex-con-controls mdui-text-field`).val('');
+        if(tag_value != ''){
+            record_files_or_tags[ctrl.id].push(tag_value);
+        };
+        tagsreflash(ctrl);
+    });
+};

@@ -30,16 +30,33 @@ mdui-divider{
     margin-top: 8px;
     margin-bottom: 8px;
 }
+/*
 .complex-con-list{
     display: flex;
     flex-direction: row;
-    width: 100%;
     min-height: 50px;
     overflow-x: auto;
+}
+*/
+.complex-con-list{
+    min-height: 50px;
+    padding: 10px;
 }
 .complex-con-controls{
     display: flex;
     flex-direction: row;
-    width: 100%;
-    min-height: 50px;
+    min-height: 60px;
+    align-items: center;
+    padding: 10px;
+    justify-content: flex-start;
+}
+.complex-con-controls mdui-text-field{
+    margin-right: auto;
+    box-sizing: border-box;
+}
+.complex-con-controls mdui-button{
+    margin-left: 10px;
+}
+mdui-chip{
+    margin-right: 5px;
 }
