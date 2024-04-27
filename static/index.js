@@ -200,10 +200,11 @@ function tagsinput_listener(ctrl){
 };
 
 
+var finish_upload = false;
 function uploadfile(event,ctrl){
     for(let i = 0;i < event.target.files.length;i++){
         let file = event.target.files[i];
-        if (file.size <= 0.5*1024*1024*1024){
+        if (file.size <= 100*1024*1024){
             let formdata = new FormData();
             formdata.append('file',file);
             $.ajax({
@@ -214,6 +215,7 @@ function uploadfile(event,ctrl){
                 contentType: false,
                 success: function(res){
                     record_files_or_tags[ctrl.id].push([file.name,res.filename]);
+                    finish_upload = true;
                 },
                 error: function(){mdui.snackbar({message: '上传失败',closeable: true});}
             });
@@ -221,31 +223,30 @@ function uploadfile(event,ctrl){
             mdui.snackbar({message: '文件过大，已跳过',closeable: true});
         };
     };
-
+    finish_upload = true;
 };
 function file_listener(ctrl){
+    record_files_or_tags[ctrl.id] = [];
     $(`#${ctrl.id} .complex-con-controls mdui-button`).on('click',function(){
         fileinput.click();
         fileinput.onchange = function(event){
-            record_files_or_tags[ctrl.id] = [];
             $('.upload-dialog').attr('open','');
+            finish_upload = false;
             uploadfile(event,ctrl);
+            //while(!finish_upload){};
+            setTimeout(function(){console.log(record_files_or_tags[ctrl.id]);},500);
             $('.upload-dialog').removeAttr('open');
-            //console.log(record_files_or_tags);
-            for(let i = 0;i<record_files_or_tags[ctrl.id].length;i++){
-                if(record_files_or_tags[ctrl.id][i].length == 2){
-                    if(ctrl.config.withtext){ //TODO:
-                        record_files_or_tags[ctrl.id][i].push($(`#${ctrl.id} .complex-con-controls mdui-text-field`).val())
-                        $(`#${ctrl.id} .complex-con-controls mdui-text-field`).val('');
-                    } else {
-                        record_files_or_tags[ctrl.id][i].push('');
-                    };
-                };
+            //TODO: 出错了
+            //console.log(record_files_or_tags[ctrl.id]); // []
+            //console.log(record_files_or_tags[ctrl.id].length); // 0
+            //console.log(record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1]); // undefined
+            if((record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1].length) == 2){
+                record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1][2].push($(`#${ctrl.id} .complex-con-controls mdui-text-field`).val() || '');
             };
             console.log(record_files_or_tags);
             tagsreflash(ctrl);
-            //TODO: 
+            //TODO: 还没做
         };
     });
 };
-//TODO:
+//TODO: 还没做
