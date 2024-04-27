@@ -60,3 +60,23 @@ mdui-divider{
 mdui-chip{
     margin-right: 5px;
 }
+.complex-con-controls mdui-icon{
+    margin: 5px;
+}
+.tabel-grid{
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    padding: 10px;
+    justify-content: center;
+    grid-template-columns:auto 1fr;
+}
+.tabel-grid p{
+    margin: 0;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    display: inline-block;
+}
+.tabel-grid mdui-segmented-button-group{
+    margin-left: 5px;
+}

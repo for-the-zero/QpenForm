@@ -123,7 +123,7 @@ function add_ctrls(jsondata){
             return processing;
         case 'tagsinput':
             if (ctrl.config.pinnedtags){
-                processing = `<mdui-select id="${ctrl.id}" variant="outlined" multiple placeholder="选择标签">`;
+                processing = `<mdui-select id="${ctrl.id}" variant="outlined" multiple placeholder="选择标签" icon="keyboard_arrow_down">`;
                 for (let i = 0; i < ctrl.config.tags.length; i++) {
                     processing += `<mdui-menu-item value="${ctrl.config.tags[i]}">${ctrl.config.tags[i]}</mdui-menu-item>`;
                 };
@@ -133,10 +133,11 @@ function add_ctrls(jsondata){
                     processing += `<div class="complex-con-list">`
                     processing += `</div>`;
                     processing += `<mdui-divider></mdui-divider>`;
-                    processing += `<mdui-tooltip content="注：点击标签可删除标签"><div class="complex-con-controls">`;
+                    processing += '<div class="complex-con-controls">';
+                        processing += `<mdui-tooltip content="点击标签可删除标签" placement="right"><mdui-icon name="info"></mdui-icon></mdui-tooltip>`;
                         processing += `<mdui-text-field label="标签"></mdui-text-field>`;
-                        processing += `<mdui-button variant="elevated">添加</mdui-button>`;
-                    processing += `</div></mdui-tooltip>`;
+                        processing += `<mdui-button variant="elevated" icon="add">添加</mdui-button>`;
+                    processing += `</div>`;
                 processing += `</mdui-card>`;
                 //
                 record_files_or_tags[ctrl.id] = [];
@@ -147,17 +148,29 @@ function add_ctrls(jsondata){
                 processing += `<div class="complex-con-list">`
                 processing += `</div>`;
                 processing += `<mdui-divider></mdui-divider>`;
-                processing += `<mdui-tooltip content="注：右键/长按可取消上传该文件"><div class="complex-con-controls">`;
+                processing += '<div class="complex-con-controls">';
+                processing += `<mdui-tooltip content="点击标签可取消上传该文件" placement="right"><mdui-icon name="info"></mdui-icon></mdui-tooltip>`;
                     if (ctrl.config.withtext) {
                         processing += `<mdui-text-field label="文件描述，上传后会自动添加进去"></mdui-text-field>`;
                     };
                     processing += `<mdui-button variant="elevated" icon="upload">上传</mdui-button>`;
-                processing += `</div></mdui-tooltip>`;
+                    processing += `</div>`;
             processing += `</mdui-card>`;
             return processing;
         case 'table':
-            //TODO:
-            return '';
+            let tabel_btns = `<mdui-segmented-button-group selects="single">`;
+            for(let i = 0; i < ctrl.config.column.length; i++){
+                tabel_btns += `<mdui-segmented-button value="${ctrl.config.column[i]}">${ctrl.config.column[i]}</mdui-segmented-button>`;
+            };
+            tabel_btns += `</mdui-segmented-button-group>`;
+            //
+            processing = `<mdui-card id="${ctrl.id}" variant="outlined" class="tabel-grid">`;
+            for(let i = 0; i < ctrl.config.row.length; i++){
+                processing += `<p>${ctrl.config.row[i]}</p>`;
+                processing += tabel_btns;
+            };
+            processing += `</mdui-card>`;
+            return processing;
     }
 };
 
@@ -176,16 +189,30 @@ function add_listeners(){
 };
 
 function chipsonclick(thisele,ctrl){
-    let tag_value = $(thisele).text();
+    let tag_value = $(thisele).data('data');
     record_files_or_tags[ctrl.id].splice(record_files_or_tags[ctrl.id].indexOf(tag_value),1);
     tagsreflash(ctrl);
 }
 function tagsreflash(ctrl){
-    let tagshtml = '';
+    //let tagshtml = '';
+    $(`#${ctrl.id} .complex-con-list`).empty();
     for(let i = 0;i < record_files_or_tags[ctrl.id].length;i++){
-        tagshtml += `<mdui-chip>${record_files_or_tags[ctrl.id][i]}</mdui-chip>`;
+        if(ctrl.type == 'files'){
+            let tagshtml;
+            if(record_files_or_tags[ctrl.id][i][2] === ''){
+                tagshtml = `<mdui-chip>${record_files_or_tags[ctrl.id][i][0]}</mdui-chip>`;
+            } else {
+                tagshtml = `<mdui-chip>${record_files_or_tags[ctrl.id][i][2]}</mdui-chip>`;
+            };
+            $(`#${ctrl.id} .complex-con-list`).append(tagshtml);
+            $(`#${ctrl.id} .complex-con-list > :last-child`).data('data',record_files_or_tags[ctrl.id][i]);
+        } else {
+            let tagshtml = `<mdui-chip>${record_files_or_tags[ctrl.id][i]}</mdui-chip>`;
+            $(`#${ctrl.id} .complex-con-list`).append(tagshtml);
+            $(`#${ctrl.id} .complex-con-list > :last-child`).data('data',record_files_or_tags[ctrl.id][i]);
+        };
     };
-    $(`#${ctrl.id} .complex-con-list`).html(tagshtml);
+    //$(`#${ctrl.id} .complex-con-list`).html(tagshtml);
     $(`#${ctrl.id} .complex-con-list mdui-chip`).on('click',function(){chipsonclick(this,ctrl);});
 };
 function tagsinput_listener(ctrl){
@@ -196,57 +223,136 @@ function tagsinput_listener(ctrl){
             record_files_or_tags[ctrl.id].push(tag_value);
         };
         tagsreflash(ctrl);
+        $(`#${ctrl.id} .complex-con-controls mdui-text-field`).focus();
     });
 };
 
 
-var finish_upload = false;
-function uploadfile(event,ctrl){
-    for(let i = 0;i < event.target.files.length;i++){
-        let file = event.target.files[i];
-        if (file.size <= 100*1024*1024){
-            let formdata = new FormData();
-            formdata.append('file',file);
-            $.ajax({
-                url: upload_to,
-                type: 'POST',
-                data: formdata,
-                processData: false,
-                contentType: false,
-                success: function(res){
-                    record_files_or_tags[ctrl.id].push([file.name,res.filename]);
-                    finish_upload = true;
-                },
-                error: function(){mdui.snackbar({message: '上传失败',closeable: true});}
+function uploadfile(event, ctrl){
+    return new Promise((resolve, reject) => {
+        const promises = [];
+        for (let i = 0; i < event.target.files.length; i++) {
+            let file = event.target.files[i];
+            if (file.size <= 100 * 1024 * 1024) {
+                let formdata = new FormData();
+                formdata.append('file', file);
+                promises.push(
+                    new Promise((resolve, reject) => {
+                        $.ajax({
+                            url: upload_to,
+                            type: 'POST',
+                            data: formdata,
+                            processData: false,
+                            contentType: false,
+                            success: function (res) {
+                                record_files_or_tags[ctrl.id].push([file.name, res.filename]);
+                                resolve();
+                            },
+                            error: function () {
+                                mdui.snackbar({ message: '上传失败', closeable: true });
+                                reject();
+                            },
+                        });
+                    })
+                );
+            } else {
+                mdui.snackbar({ message: '文件过大，已跳过', closeable: true });
+            }
+        };
+        Promise.all(promises)
+            .then(() => {
+                resolve();
+            })
+            .catch(() => {
+                reject();
             });
-        } else {
-            mdui.snackbar({message: '文件过大，已跳过',closeable: true});
-        };
-    };
-    finish_upload = true;
-};
-function file_listener(ctrl){
+    });
+}
+async function file_listener(ctrl) {
     record_files_or_tags[ctrl.id] = [];
-    $(`#${ctrl.id} .complex-con-controls mdui-button`).on('click',function(){
+    $(`#${ctrl.id} .complex-con-controls mdui-button`).on('click', async function (){
+        if(ctrl.config.accept){
+            fileinput.accept = ctrl.config.accept;
+        } else {
+            fileinput.accept = '';
+        };
+        fileinput.value = '';
         fileinput.click();
-        fileinput.onchange = function(event){
-            $('.upload-dialog').attr('open','');
-            finish_upload = false;
-            uploadfile(event,ctrl);
-            //while(!finish_upload){};
-            setTimeout(function(){console.log(record_files_or_tags[ctrl.id]);},500);
+        fileinput.onchange = async function (event) {
+            $('.upload-dialog').attr('open', '');
+            await uploadfile(event, ctrl);
+            //console.log(record_files_or_tags);
+            //console.log(record_files_or_tags[ctrl.id]);
+            //console.log(record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1]);
             $('.upload-dialog').removeAttr('open');
-            //TODO: 出错了
-            //console.log(record_files_or_tags[ctrl.id]); // []
-            //console.log(record_files_or_tags[ctrl.id].length); // 0
-            //console.log(record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1]); // undefined
-            if((record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1].length) == 2){
-                record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1][2].push($(`#${ctrl.id} .complex-con-controls mdui-text-field`).val() || '');
+            /*
+            if (record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1].length === 2) {
+                record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1].push(
+                   $(`#${ctrl.id} .complex-con-controls mdui-text-field`).val() || ''
+                );
             };
-            console.log(record_files_or_tags);
+            //console.log(record_files_or_tags);
+            */
+            for(let i = 0; i < record_files_or_tags[ctrl.id].length; i++){
+                if(record_files_or_tags[ctrl.id][i].length === 2){
+                    record_files_or_tags[ctrl.id][i].push(
+                        $(`#${ctrl.id} .complex-con-controls mdui-text-field`).val() || ''
+                    );
+                };
+            };
             tagsreflash(ctrl);
-            //TODO: 还没做
         };
     });
+}
+
+
+function get_result_json(){
+    let completed = ture;
+    let result = {};
+    for(let i = 0;i<ctrls.length;i++){
+        let ctrl = ctrls[i];
+        let value;
+        switch(ctrl.type){
+            case 'text':
+            case 'textarea':
+            case 'radios':
+            case 'select':
+                value = $(`#${ctrl.id}`).val();
+                result[ctrl.id] = value;
+                if(value === '' && ctrl.req){
+                    completed = false;
+                };
+                break;
+            case 'tagsinput':
+                if(!ctrl.config.pinnedtags){
+                    value = $(`#${ctrl.id}`).val();
+                }else{
+                    value = record_files_or_tags[ctrl.id];
+                };
+                result[ctrl.id] = value;
+                if(value == [] && ctrl.req){
+                    completed = false;
+                };
+                break;
+            case 'checkboxs':
+                value = $(`#${ctrl.id}`).prop('checked');
+                result[ctrl.id] = value;
+                break;
+            case 'files':
+                value = record_files_or_tags[ctrl.id];
+                result[ctrl.id] = value;
+                if(value == [] && ctrl.req){
+                    completed = false;
+                };
+                break;
+            case 'table':
+                value = {}
+                for(let i = 0;i<ctrl.config.row;i++){
+                    //value[ctrl.config.row[i]] //TODO:
+                    let matched_ele = $(`#${ctrl.id}`).filter(function(){return $(this).text() === ctrl.config.row[i];});
+                    if(){};
+                };
+        };
+        //TODO:
+    };
 };
-//TODO: 还没做

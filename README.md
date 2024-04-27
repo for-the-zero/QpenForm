@@ -8,6 +8,12 @@
 
 ---
 
+# 特点
+
+以后再写，忘了踢我
+
+---
+
 # 快速开始
 
 ## 打开网页
@@ -79,6 +85,8 @@ type: `radios`
 
 config: `{"opt": ["选项","选项"], "br': true}`
 
+> req无效
+>
 > br: 是否换行
 
 - 多选框
@@ -87,6 +95,8 @@ type: `checkboxs`
 
 config: `{"label": "标签", "br': true}`
 
+> req无效
+>
 > br: 是否换行
 
 - 下拉列表
@@ -95,17 +105,23 @@ type: `select`
 
 config: `{"opt": ["选项","选项"]}`
 
+> req无效
+
 - 文件
 
 type: `files`
 
-config: `{"withtext": true}`
+config: `{"withtext": true, "accept": "image/png"}`
+
+> withtext: 是否带有文本
+>
+> accept: 接受的文件类型（选填）
 
 - 表格选项
 
 type: `table`
 
-config: `{“column”: [“列名”,”列名”], “row”: [“行名”,”行名”]}`
+config: `{“column”: [”列名”,”列名”], ”row”: [”行名”,”行名”]}`
 
 ---
 
