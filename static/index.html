@@ -9,9 +9,12 @@
     <link rel="stylesheet" href="https://jsd.cdn.zzko.cn/npm/mdui/mdui.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://jsd.cdn.zzko.cn/npm/mdui/mdui.global.js"></script>
+
     <script src="https://cdn.bootcdn.net/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
-    <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jsSHA/3.3.1/sha.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <mdui-dialog class="invalid-dialog">
@@ -24,11 +27,15 @@
         <span slot="headline">上传中</span>
         <mdui-circular-progress></mdui-circular-progress><p>请稍后</p>
     </mdui-dialog>
+    <mdui-dialog class="autosave-dialog" close-on-overlay-click close-on-esc>
+        <span slot="headline">自动保存提示</span>
+        <span slot="description">检测到有一个自动保存的结果，是否使用</span>
+        <mdui-button slot="action" variant="text" onclick="$('.autosave-dialog').removeAttr('open');">取消</mdui-button>
+        <mdui-button slot="action" variant="tonal">使用</mdui-button>
+    </mdui-dialog>
 
     <div class="mdui-prose main"></div>
     
-    
-
     <script src="index.js"></script>
 
 </body>

@@ -2,12 +2,12 @@ from flask import Flask, send_from_directory, request , jsonify
 import os
 import hashlib
 app = Flask(__name__)
-def sha1(filename):
+def sha256(filename):
     file_extension = os.path.splitext(filename)[1]
     base_filename = filename.replace(file_extension, '')
-    sha1_obj = hashlib.sha1()
-    sha1_obj.update(base_filename.encode('utf-8'))
-    return f"{sha1_obj.hexdigest()}{file_extension}"
+    sha256_obj = hashlib.sha256()
+    sha256_obj.update(base_filename.encode('utf-8'))
+    return f"{sha256_obj.hexdigest()}{file_extension}"
     
 
 #####config####
@@ -40,7 +40,7 @@ def uploadfile():
     if file.filename == '':
         return jsonify({'result':'no file'})
     else:
-        filename = sha1(file.filename)
+        filename = sha256(file.filename)
         file.save(os.path.join(form_save_path,filename))
         print(os.path.join(form_save_path,filename))
         return jsonify({'result':'success', 'filename': filename})

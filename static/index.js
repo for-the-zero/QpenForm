@@ -35,6 +35,7 @@ markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
     const langName = token.info ? ` language-${token.info.trim()}` : '';
     return `<pre class="codeblock"><code class="codeblock${langName}">${content}</code></pre>\n`;
 };
+var verify_code = '';
 customs();
 function customs(){
     // 1. 独占一行，只有一个，所有文本最开头，交给函数meta_load(内容)处理，以!&-->开头，阻止默认行为
@@ -46,6 +47,9 @@ function customs(){
             return meta_load(content);
         } else if (content.startsWith('&-->')){
             return add_ctrls(content);
+        } else if (content.startsWith('&==>')){
+            verify_code = content.slice(4);
+            return '';
         } else {
             return '<p>';
         };
@@ -68,7 +72,17 @@ function load_form(data){
     }).remove();
     $('.main').append('<mdui-divider></mdui-divider>');
     $('.main').append('<mdui-button class="submit-btn" full-width>提交</mdui-button>');
+    auto_save_processing();
+    setInterval(function(){
+        let value = get_result_json();
+        localStorage.setItem(`Form-${sha256(send_to)}`,value[0]);
+    },10000);
+};
 
+function sha256(value){
+    let shaobj = new jsSHA("SHA-256", "TEXT");
+    shaobj.update(value);
+    return shaobj.getHash("HEX");
 };
 
 var send_to = 'localhost';
@@ -134,8 +148,8 @@ function add_ctrls(jsondata){
                     processing += `</div>`;
                     processing += `<mdui-divider></mdui-divider>`;
                     processing += '<div class="complex-con-controls">';
-                        processing += `<mdui-tooltip content="点击标签可删除标签" placement="right"><mdui-icon name="info"></mdui-icon></mdui-tooltip>`;
-                        processing += `<mdui-text-field label="标签"></mdui-text-field>`;
+                        processing += `<mdui-tooltip content="点击标签可删除" placement="right"><mdui-icon name="info"></mdui-icon></mdui-tooltip>`;
+                        processing += `<mdui-text-field label="添加"></mdui-text-field>`;
                         processing += `<mdui-button variant="elevated" icon="add">添加</mdui-button>`;
                     processing += `</div>`;
                 processing += `</mdui-card>`;
@@ -281,18 +295,7 @@ async function file_listener(ctrl) {
         fileinput.onchange = async function (event) {
             $('.upload-dialog').attr('open', '');
             await uploadfile(event, ctrl);
-            //console.log(record_files_or_tags);
-            //console.log(record_files_or_tags[ctrl.id]);
-            //console.log(record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1]);
             $('.upload-dialog').removeAttr('open');
-            /*
-            if (record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1].length === 2) {
-                record_files_or_tags[ctrl.id][record_files_or_tags[ctrl.id].length - 1].push(
-                   $(`#${ctrl.id} .complex-con-controls mdui-text-field`).val() || ''
-                );
-            };
-            //console.log(record_files_or_tags);
-            */
             for(let i = 0; i < record_files_or_tags[ctrl.id].length; i++){
                 if(record_files_or_tags[ctrl.id][i].length === 2){
                     record_files_or_tags[ctrl.id][i].push(
@@ -307,8 +310,9 @@ async function file_listener(ctrl) {
 
 
 function get_result_json(){
-    let completed = ture;
+    let completed = true;
     let result = {};
+    let firstnotcompleted = null;
     for(let i = 0;i<ctrls.length;i++){
         let ctrl = ctrls[i];
         let value;
@@ -321,10 +325,13 @@ function get_result_json(){
                 result[ctrl.id] = value;
                 if(value === '' && ctrl.req){
                     completed = false;
+                    if(!firstnotcompleted){
+                        firstnotcompleted = ctrl.id;
+                    };
                 };
                 break;
             case 'tagsinput':
-                if(!ctrl.config.pinnedtags){
+                if(ctrl.config.pinnedtags){
                     value = $(`#${ctrl.id}`).val();
                 }else{
                     value = record_files_or_tags[ctrl.id];
@@ -332,6 +339,9 @@ function get_result_json(){
                 result[ctrl.id] = value;
                 if(value == [] && ctrl.req){
                     completed = false;
+                    if(!firstnotcompleted){
+                        firstnotcompleted = ctrl.id;
+                    };
                 };
                 break;
             case 'checkboxs':
@@ -343,16 +353,81 @@ function get_result_json(){
                 result[ctrl.id] = value;
                 if(value == [] && ctrl.req){
                     completed = false;
+                    if(!firstnotcompleted){
+                        firstnotcompleted = ctrl.id;
+                    };
                 };
                 break;
             case 'table':
                 value = {}
-                for(let i = 0;i<ctrl.config.row;i++){
-                    //value[ctrl.config.row[i]] //TODO:
-                    let matched_ele = $(`#${ctrl.id}`).filter(function(){return $(this).text() === ctrl.config.row[i];});
-                    if(){};
+                for(let i = 0;i<ctrl.config.row.length;i++){
+                    let valuethis = $(`#${ctrl.id}`).children('mdui-segmented-button-group').eq(i);
+                    value[ctrl.config.row[i]] = valuethis.val();
+                    if(value == '' && ctrl.req){
+                        completed = false;
+                        if(!firstnotcompleted){
+                            firstnotcompleted = ctrl.id;
+                        };
+                    };
                 };
+                result[ctrl.id] = value;
         };
-        //TODO:
+    };
+    result = JSON.stringify(result);
+    return [result, completed, firstnotcompleted];
+};
+
+function auto_save_processing(){
+    let autosaved = JSON.parse(localStorage.getItem(`Form-${sha256(send_to)}`));
+    if(autosaved != null){
+        $('.autosave-dialog').attr('open','');
+        $('.autosave-dialog [variant="tonal"]').on('click',function(){
+            $('.autosave-dialog').removeAttr('open');
+            for(let id in autosaved){
+                let type = ctrls.find(obj => obj.id == id).type;
+                switch(type){
+                    case 'text':
+                    case 'textarea':
+                    case 'radios':
+                    case 'select':
+                        $(`#${id}`).val(autosaved[id]);
+                        break;
+                    case 'tagsinput':
+                        let ispinned = ctrls.find(obj => obj.id == id).config.pinnedtags;
+                        if(ispinned){
+                            $(`#${id}`).val(autosaved[id]);
+                        }else{
+                            record_files_or_tags[id] = autosaved[id];
+                            tagsreflash({id:id,type:'tagsinput'});
+                        };
+                        break;
+                    case 'checkboxs':
+                        $(`#${id}`).prop('checked',autosaved[id]);
+                        break;
+                    case 'files':
+                        record_files_or_tags[id] = autosaved[id];
+                        tagsreflash({id:id,type:'files'});
+                        break;
+                    case 'table':
+                        let content = autosaved[id];
+                        let i = 0;
+                        for(let key in content){
+                            $(`#${id}`).children('mdui-segmented-button-group').eq(i).val(content[key]);
+                            i++;
+                        };
+                        break;
+                };
+            };
+        });
     };
 };
+
+$('.submit-btn').on('click', function(){
+    let callback = get_result_json();
+    if(callback[1]){
+        //TODO:
+    } else {
+        //TODO:
+    };
+    //TODO:
+});
