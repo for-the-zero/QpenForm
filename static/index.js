@@ -35,7 +35,7 @@ markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
     const langName = token.info ? ` language-${token.info.trim()}` : '';
     return `<pre class="codeblock"><code class="codeblock${langName}">${content}</code></pre>\n`;
 };
-var verify_code = '';
+var verify_code = 'true';
 customs();
 function customs(){
     // 1. 独占一行，只有一个，所有文本最开头，交给函数meta_load(内容)处理，以!&-->开头，阻止默认行为
@@ -71,12 +71,14 @@ function load_form(data){
         return $(this).text().trim() === '';
     }).remove();
     $('.main').append('<mdui-divider></mdui-divider>');
+    if(norep){no_repeat();};
     $('.main').append('<mdui-button class="submit-btn" full-width>提交</mdui-button>');
     auto_save_processing();
     setInterval(function(){
-        let value = get_result_json();
-        localStorage.setItem(`Form-${sha256(send_to)}`,value[0]);
+        let value = get_result_obj();
+        localStorage.setItem(`Form-${sha256(form_source)}`,JSON.stringify(value[0]));
     },10000);
+    $('.submit-btn').on('click',submiting);
 };
 
 function sha256(value){
@@ -87,6 +89,7 @@ function sha256(value){
 
 var send_to = 'localhost';
 var upload_to = 'localhost';
+var norep = false;
 function meta_load(meta){
     //console.log(meta);
     meta = meta.slice(5);
@@ -98,6 +101,9 @@ function meta_load(meta){
     if (meta.upload){
         upload_to = meta.upload;
     };
+    if (meta.norep){
+        norep = true;
+    }
     send_to = meta.to;
     return '';
 };
@@ -306,10 +312,10 @@ async function file_listener(ctrl) {
             tagsreflash(ctrl);
         };
     });
-}
+};
 
 
-function get_result_json(){
+function get_result_obj(){
     let completed = true;
     let result = {};
     let firstnotcompleted = null;
@@ -373,12 +379,11 @@ function get_result_json(){
                 result[ctrl.id] = value;
         };
     };
-    result = JSON.stringify(result);
     return [result, completed, firstnotcompleted];
 };
 
 function auto_save_processing(){
-    let autosaved = JSON.parse(localStorage.getItem(`Form-${sha256(send_to)}`));
+    let autosaved = JSON.parse(localStorage.getItem(`Form-${sha256(form_source)}`));
     if(autosaved != null){
         $('.autosave-dialog').attr('open','');
         $('.autosave-dialog [variant="tonal"]').on('click',function(){
@@ -422,12 +427,67 @@ function auto_save_processing(){
     };
 };
 
-$('.submit-btn').on('click', function(){
-    let callback = get_result_json();
+function uploadform(result){
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: send_to,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify([form_source,result]),
+            success: function(){mdui.snackbar({ message: '成功', closeable: true });;resolve();},
+            error: function(){mdui.snackbar({ message: '失败', closeable: true });;reject();}
+        });
+    });
+};
+async function submiting(){
+    let callback = get_result_obj();
     if(callback[1]){
-        //TODO:
+        if(eval(verify_code)){
+            $('.upload-dialog').attr('open', '');
+            await uploadform(callback[0]);
+            $('.upload-dialog').removeAttr('open');
+            if(norep){
+                let old_val_ls = localStorage.getItem('Form-norep') || [];
+                old_val_ls.push(sha256(form_source));
+                localStorage.setItem('Form-norep',old_val_ls);
+            };
+        }else{
+            mdui.snackbar({ message: '自定义的规则未通过', closeable: false });
+        };
     } else {
-        //TODO:
+        mdui.snackbar({ message: '还有未填写的内容', closeable: false });
+        $(`#${callback[2]}`).focus();
+    };
+};
+
+async function no_repeat(){
+    let rep_records = localStorage.getItem('Form-norep') || [];
+    let this_form_id = sha256(form_source);
+    if(rep_records.includes(this_form_id)){
+        mdui.alert({
+            headline: "重复访问！",
+            description: "不能重复提交第二次",
+            confirmText: "知道了",
+            onConfirm: () => console.log("他知道了"),
+        });
+    };
+    let user_code = [];
+    let ip = await fetch('https://checkip.amazonaws.com/');
+    if(!ip.ok){user_code.push(null)}else{
+        ip = await ip.text();
+        user_code.push(ip);
     };
     //TODO:
-});
+
+
+    $.ajax({
+        url: norep,
+        type: 'POST',
+        data: JSON.stringify([this_form_id,user_code]),
+        success: function(response){
+            if(response[0] == true){
+                //TODO:
+            };
+        }
+    });
+};

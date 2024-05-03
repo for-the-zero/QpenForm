@@ -1,0 +1,12 @@
+save_files: form_save_test
+
+forms:
+    any_form_name:
+        source: example/1.md
+        relativepath: static/example/1.md
+        db: form_save_test/form1.db
+
+    form_2:
+        source: example/2.md
+        relativepath: static/example/2.md
+        db: form_save_test/form2.db
