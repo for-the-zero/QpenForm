@@ -75,8 +75,10 @@ function load_form(data){
     $('.main').append('<mdui-button class="submit-btn" full-width>提交</mdui-button>');
     auto_save_processing();
     setInterval(function(){
-        let value = get_result_obj();
-        localStorage.setItem(`Form-${sha256(form_source)}`,JSON.stringify(value[0]));
+        if(!$('.autosave-dialog').attr('open')){
+            let value = get_result_obj();
+            localStorage.setItem(`Form-${sha256(form_source)}`,JSON.stringify(value[0]));    
+        };
     },10000);
     $('.submit-btn').on('click',submiting);
 };
@@ -103,6 +105,7 @@ function meta_load(meta){
     };
     if (meta.norep){
         norep = true;
+        norep_ask = meta.norep;
     }
     send_to = meta.to;
     return '';
@@ -447,9 +450,11 @@ async function submiting(){
             await uploadform(callback[0]);
             $('.upload-dialog').removeAttr('open');
             if(norep){
-                let old_val_ls = localStorage.getItem('Form-norep') || [];
+                $('.submit-btn').remove();
+                let old_val_ls = localStorage.getItem('Form-norep') || '[]';
+                old_val_ls = JSON.parse(old_val_ls);
                 old_val_ls.push(sha256(form_source));
-                localStorage.setItem('Form-norep',old_val_ls);
+                localStorage.setItem('Form-norep',JSON.stringify(old_val_ls));
             };
         }else{
             mdui.snackbar({ message: '自定义的规则未通过', closeable: false });
@@ -468,26 +473,52 @@ async function no_repeat(){
             headline: "重复访问！",
             description: "不能重复提交第二次",
             confirmText: "知道了",
-            onConfirm: () => console.log("他知道了"),
+            onConfirm: () => {
+                $('body').html('<div style="background-color: #6060ff;color: white;font-size: 150px;padding: 20px;width: 100%;height: 100%;box-sizing: border-box;"">:)</div>');
+                // 好有病啊
+            },
         });
     };
-    let user_code = [];
+    let user_code = []; //[ip,fp]
     let ip = await fetch('https://checkip.amazonaws.com/');
     if(!ip.ok){user_code.push(null)}else{
         ip = await ip.text();
+        ip = ip.replace(/\n/g,'');
         user_code.push(ip);
     };
-    //TODO:
-
-
+    /*
+    try{
+        user_code.push((document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('experimental-webgl')).getParameter((document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('experimental-webgl')).RENDERER));
+    }catch{
+        user_code.push(null);
+    };
+    */
+    let fp_result = '';
+    await FingerprintJS.load().then(async fp => {
+        await fp.get().then(result => {
+            fp_result = result.visitorId;
+        });
+    });
+    user_code.push(fp_result);
+    console.log(user_code)
     $.ajax({
-        url: norep,
+        url: norep_ask,
         type: 'POST',
+        contentType: 'application/json',
         data: JSON.stringify([this_form_id,user_code]),
         success: function(response){
             if(response[0] == true){
-                //TODO:
+                mdui.alert({
+                    headline: "重复访问！",
+                    description: "不能重复提交第二次",
+                    confirmText: "知道了",
+                    onConfirm: () => {
+                        $('body').html('<div style="background-color: #6060ff;color: white;font-size: 150px;padding: 20px;width: 100%;height: 100%;box-sizing: border-box;"">:)</div>');
+                        // 好有病啊
+                    },
+                });
             };
         }
     });
 };
+

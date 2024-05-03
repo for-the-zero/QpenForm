@@ -78,8 +78,7 @@ def norep():
 		err_response = jsonify([False])
 		err_response.status_code = 400
 		return err_response
-	createdb.norep(data[0],data[1])
-	return jsonify([True])
+	return jsonify(createdb.norep(data[0],data[1]))
 
 if __name__ == '__main__':
 	app.run(debug=True)
