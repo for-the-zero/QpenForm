@@ -1,4 +1,5 @@
 save_files: form_save_test
+no_repeat_db: form_save_test/norep.db
 
 forms:
     any_form_name:

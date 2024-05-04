@@ -3,6 +3,7 @@ import os
 import hashlib
 import yaml
 import createdb
+import json
 
 app = Flask(__name__)
 def sha256(filename):
@@ -55,7 +56,20 @@ def submit():
 		return err_response
 	with open('log.txt','a',encoding='utf-8') as f:
 		f.write(f"{data}\n")
+	with open(form_config['relativepath'],'r',encoding='utf-8') as f:
+		contents = f.readlines()
+		for i in contents:
+			if i.startswith('!&-->'):
+				i = i.replace('!&-->','')
+				i = json.loads(i)
+				norep = 'norep' in i
+				break
 	createdb.add(data[1],form_config['db'])
+	if norep:
+		createdb.recrep(
+			os.path.join(app.root_path,fconfig['no_repeat_db']),
+			data[3],
+			data[2])
 		
 	return jsonify({})
 
@@ -75,10 +89,12 @@ def uploadfile():
 def norep():
 	data = request.get_json()
 	if data is None:
-		err_response = jsonify([False])
+		err_response = jsonify({'error':'no data'})
 		err_response.status_code = 400
 		return err_response
-	return jsonify(createdb.norep(data[0],data[1]))
+	with open('log.txt','a',encoding='utf-8') as f:
+		f.write(f"{data}\n")
+	return jsonify([createdb.norep(os.path.join(app.root_path,fconfig['no_repeat_db']),data[0],data[1])])
 
 if __name__ == '__main__':
 	app.run(debug=True)

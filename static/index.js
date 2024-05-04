@@ -436,7 +436,7 @@ function uploadform(result){
             url: send_to,
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify([form_source,result]),
+            data: JSON.stringify([form_source,result,user_code,sha256(form_source)]),
             success: function(){mdui.snackbar({ message: '成功', closeable: true });;resolve();},
             error: function(){mdui.snackbar({ message: '失败', closeable: true });;reject();}
         });
@@ -465,6 +465,7 @@ async function submiting(){
     };
 };
 
+var user_code = []; //[ip,fp]
 async function no_repeat(){
     let rep_records = localStorage.getItem('Form-norep') || [];
     let this_form_id = sha256(form_source);
@@ -479,7 +480,6 @@ async function no_repeat(){
             },
         });
     };
-    let user_code = []; //[ip,fp]
     let ip = await fetch('https://checkip.amazonaws.com/');
     if(!ip.ok){user_code.push(null)}else{
         ip = await ip.text();
@@ -500,7 +500,7 @@ async function no_repeat(){
         });
     });
     user_code.push(fp_result);
-    console.log(user_code)
+    //console.log(user_code)
     $.ajax({
         url: norep_ask,
         type: 'POST',
@@ -514,7 +514,7 @@ async function no_repeat(){
                     confirmText: "知道了",
                     onConfirm: () => {
                         $('body').html('<div style="background-color: #6060ff;color: white;font-size: 150px;padding: 20px;width: 100%;height: 100%;box-sizing: border-box;"">:)</div>');
-                        // 好有病啊
+                        // 6
                     },
                 });
             };

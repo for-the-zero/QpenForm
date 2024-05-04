@@ -34,5 +34,22 @@ def add(data,db_path):
 	conn.commit()
 	conn.close()
 
-def norep(form_id,usercode):
-	#TODO:
+def norep(db_path,form_id,usercode):
+	conn = sqlite3.connect(db_path)
+	cursor = conn.cursor()
+	cursor.execute(f'''CREATE TABLE IF NOT EXISTS {form_id} (ip TEXT,fp TEXT)''')
+	conn.commit()
+	cursor.execute(f'SELECT * FROM {form_id} WHERE ip=? OR fp=?',(usercode[0],usercode[1]))
+	db_result = cursor.fetchone()
+	if not db_result:
+		conn.close()
+		return False
+	conn.close()
+	return True
+
+def recrep(db_path,form_id,usercode):
+	conn = sqlite3.connect(db_path)
+	cursor = conn.cursor()
+	cursor.execute(f'INSERT INTO {form_id} (ip,fp) VALUES (?,?)',(usercode[0],usercode[1]))
+	conn.commit()
+	conn.close()
