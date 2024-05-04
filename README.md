@@ -6,6 +6,8 @@
 
 通过自定义语法增加控件
 
+~~English: Tooooooooo loooooooooooog, I don't want to translate. Open your translate apps!~~
+
 ---
 
 # 特点
@@ -155,3 +157,5 @@ forms:
 ```
 
 很多地方没有完善，够自己用就行
+
+新手第一次做这么大（相对于自己）的项目，花了我好几天的时间（算上在校有一个多月了）
