@@ -215,7 +215,7 @@ function chipsonclick(thisele,ctrl){
     let tag_value = $(thisele).data('data');
     record_files_or_tags[ctrl.id].splice(record_files_or_tags[ctrl.id].indexOf(tag_value),1);
     tagsreflash(ctrl);
-}
+};
 function tagsreflash(ctrl){
     //let tagshtml = '';
     $(`#${ctrl.id} .complex-con-list`).empty();
