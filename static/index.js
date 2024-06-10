@@ -172,9 +172,9 @@ function add_ctrls(jsondata){
                 processing += `</div>`;
                 processing += `<mdui-divider></mdui-divider>`;
                 processing += '<div class="complex-con-controls">';
-                processing += `<mdui-tooltip content="点击标签可取消上传该文件" placement="right"><mdui-icon name="info"></mdui-icon></mdui-tooltip>`;
+                processing += `<mdui-tooltip content="点击标签可取消上传该文件，上传完成后会将描述自动添加到文件" placement="right"><mdui-icon name="info"></mdui-icon></mdui-tooltip>`;
                     if (ctrl.config.withtext) {
-                        processing += `<mdui-text-field label="文件描述，上传后会自动添加进去"></mdui-text-field>`;
+                        processing += `<mdui-text-field label="文件描述/介绍（选填）"></mdui-text-field>`;
                     };
                     processing += `<mdui-button variant="elevated" icon="upload">上传</mdui-button>`;
                     processing += `</div>`;
@@ -273,6 +273,7 @@ function uploadfile(event, ctrl){
                             },
                             error: function () {
                                 mdui.snackbar({ message: '上传失败', closeable: true });
+                                $('.upload-dialog').removeAttr('open');
                                 reject();
                             },
                         });

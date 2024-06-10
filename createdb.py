@@ -37,6 +37,7 @@ def add(data,db_path):
 def norep(db_path,form_id,usercode):
 	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
+	form_id = 'form_' + form_id
 	cursor.execute(f'''CREATE TABLE IF NOT EXISTS {form_id} (ip TEXT,fp TEXT)''')
 	conn.commit()
 	cursor.execute(f'SELECT * FROM {form_id} WHERE ip=? OR fp=?',(usercode[0],usercode[1]))

@@ -97,4 +97,4 @@ def norep():
 	return jsonify([createdb.norep(os.path.join(app.root_path,fconfig['no_repeat_db']),data[0],data[1])])
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	app.run(host='::',port=5000)
